@@ -1,5 +1,9 @@
 package utils
 
+import (
+	"encoding/binary"
+)
+
 var crc16XMODEMTable = [256]uint16{
 	0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50A5, 0x60C6, 0x70E7,
 	0x8108, 0x9129, 0xA14A, 0xB16B, 0xC18C, 0xD1AD, 0xE1CE, 0xF1EF,
@@ -71,9 +75,6 @@ var crc16MODBUS = [256]uint16{
 }
 
 func GenCRC16XMODEM(buffer []byte) uint16 {
-	if len(buffer) == 0 {
-		return 0
-	}
 	var crc uint16 = 0
 	for _, c := range buffer {
 		crc = crc16XMODEMTable[((crc>>8)^uint16(c))&0xFF] ^ (crc << 8)
@@ -89,5 +90,24 @@ func GenCRC16MODBUS(buffer []byte) uint16 {
 	for _, b := range buffer {
 		crc = (crc >> 8) ^ crc16MODBUS[(crc^uint16(b))&0xFF]
 	}
+
 	return crc
+}
+
+func CheckCRC16MODBUS(buffer []byte, result []byte, order binary.ByteOrder) bool {
+	got := GenCRC16MODBUS(buffer)
+	want := order.Uint16(result)
+	return got == want
+}
+
+func CheckCRC16MODBUSLE(buffer []byte, result []byte) bool {
+	got := GenCRC16MODBUS(buffer)
+	want := binary.LittleEndian.Uint16(result)
+	return got == want
+}
+
+func CheckCRC16MODBUSBE(buffer []byte, result []byte) bool {
+	got := GenCRC16MODBUS(buffer)
+	want := binary.BigEndian.Uint16(result)
+	return got == want
 }
