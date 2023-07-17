@@ -1,3 +1,3 @@
-module checksum
+module github.com/mainjzb/checksum
 
-go 1.20
+go 1.18
